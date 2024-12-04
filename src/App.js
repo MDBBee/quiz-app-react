@@ -7,12 +7,13 @@ import Questions from './components/Questions';
 import Error from './components/Error';
 import NextButton from './components/NextButton';
 import Progress from './components/Progress';
+import FinishedScreen from './components/FinishedScreen';
 
 // loading, error, ready, active, finished
 const initialState = {
   questions: [],
   status: 'loading',
-  index: 0,
+  index: 14,
   newAnswer: null,
   points: 0,
 };
@@ -38,6 +39,10 @@ const reducer = (state, action) => {
       };
     case 'NEXT':
       return { ...state, index: state.index + 1, newAnswer: null };
+
+    case 'FINISHED':
+      return { ...state, status: 'finished' };
+
     default:
       throw new Error('Unkown action!!');
   }
@@ -49,14 +54,14 @@ function App() {
   const totalPoints = state.questions.reduce((prev, curr) => {
     return Number(curr.points) + prev;
   }, 0);
-  console.log(totalPoints);
 
   useEffect(() => {
     fetch('http://localhost:7000/questions')
       .then((res) => res.json())
       .then((data) => dispatch({ type: 'LOAD_DATA', payload: data }));
   }, []);
-  console.log(state.questions);
+
+  console.log(state.answer);
 
   return (
     <div className="app">
@@ -74,14 +79,23 @@ function App() {
               numQuestions={numQuestions}
               totalPoints={totalPoints}
               points={state.points}
+              answer={state.newAnswer}
             />
             <Questions
               question={state.questions[state.index]}
               dispatch={dispatch}
               answer={state.newAnswer}
             />
-            <NextButton dispatch={dispatch} answer={state.newAnswer} />
+            <NextButton
+              dispatch={dispatch}
+              answer={state.newAnswer}
+              numQuestions={numQuestions}
+              index={state.index}
+            />
           </>
+        )}
+        {state.status === 'finished' && (
+          <FinishedScreen maxPoints={totalPoints} points={state.points} />
         )}
       </Main>
     </div>
